@@ -1,7 +1,7 @@
-import { ID } from "appwrite";
+import { ID, Query } from "appwrite";
 import { INewUser } from "@/types";
 import { account, appwriteConfig, avatars, databases } from "./config";
-import { CloudCog } from "lucide-react";
+import { error } from "console";
 
 export async function createUserAccount(user: INewUser) {
     try {
@@ -57,6 +57,26 @@ export async function signInAccount(user: {
     try {
         const session = await account.createEmailSession(user.email, user.password);
         return session;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export async function getCurrentUser () {
+    try {
+        const currentAccount = await account.get();
+
+        if(!currentAccount) throw error;
+
+        const currentUser = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.userCollectionId,
+            [Query.equal('accountId',currentAccount.$id)]
+        )
+
+        if(!currentUser) throw error;
+
+        return currentUser.documents[0];
     } catch (error) {
         console.log(error);
     }
